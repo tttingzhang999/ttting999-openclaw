@@ -10,10 +10,8 @@ OpenClaw 不會因長時間對話導致 context 爆炸，有三層防護：
 - 只修剪 `toolResult` 訊息，user/assistant 訊息不動
 
 ### 2. Compaction（壓縮）
-- Context 接近 ~40K tokens 時自動觸發
+- Context 接近 model context window 上限時自動觸發（例如 200K model 扣除 `reserveTokensFloor` 預設 20K，約在 ~180K tokens 時觸發）
 - 摘要舊訊息，保留關鍵資訊（不是直接截斷）
-- 移除程序性噪音（確認訊息、暫時錯誤）
-- 多輪 debug 迴圈會被壓縮成單一結果
 
 ### 3. Memory Flush（記憶沖刷）
 - Compaction 前自動觸發一輪靜默 agentic turn
@@ -24,8 +22,8 @@ OpenClaw 不會因長時間對話導致 context 爆炸，有三層防護：
 
 | 層級 | 內容 | 生命週期 |
 |------|------|----------|
-| Bootstrap Files | SOUL.md、USER.md、AGENTS.md、MEMORY.md | 每次 session 開始載入，永久存在 |
-| Session Transcript | 完整對話歷史（JSONL） | 重啟後清除（除非用 managed hosting） |
+| Bootstrap Files | SOUL.md、USER.md、AGENTS.md、MEMORY.md、TOOLS.md | 每次 session 開始載入，永久存在 |
+| Session Transcript | 完整對話歷史（JSONL） | 持久保存在磁碟（`~/.openclaw/agents/<agentId>/sessions/*.jsonl`） |
 | LLM Context Window | 活躍的對話內容 | 超過上限時觸發 compaction |
 | Retrieval Index | 語意搜尋（70% vector + 30% lexical） | SQLite + FTS5 + sqlite-vec |
 
@@ -38,8 +36,10 @@ OpenClaw 不會因長時間對話導致 context 爆炸，有三層防護：
 ## Session 隔離
 
 `session.dmScope` 控制對話隔離範圍：
-- `per-channel-peer`（預設）：每個使用者獨立對話
-- `per-channel`：同 channel 內共享 context
+- `main`（預設）：所有 DM 共用主 session，保持連續性
+- `per-peer`：每個對話對象獨立 session
+- `per-channel-peer`：每個 channel + 使用者獨立對話（多使用者場景推薦）
+- `per-account-channel-peer`：最細粒度，按 account + channel + 使用者隔離
 
 ## 關鍵原則
 

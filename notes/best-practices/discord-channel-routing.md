@@ -68,7 +68,7 @@
 4. `guildId`（Discord guild）
 5. `accountId` 精確匹配
 6. `accountId: "*"`（channel 全域 fallback）
-7. Default agent
+7. Default agent（`agents.list[].default: true` → 第一個 agent → 名為 `main` 的 agent）
 
 ## Thread Binding（進階）
 
@@ -92,6 +92,8 @@ Thread 指令：
 - `/focus` — 綁定 thread 到 agent session
 - `/unfocus` — 解除綁定
 - `/agents` — 列出可用 agent
+- `/session idle <duration|off>` — 設定 thread idle 超時
+- `/session max-age <duration|off>` — 設定 thread 最長存活時間
 
 ## Discord Bot 設定 Checklist
 

@@ -154,9 +154,12 @@ Humans don't respond to every message. Neither should you.
 防止 over-thinking 的最直接手段：
 
 ```
-/think off     # 關閉延伸思考（生產環境推薦）
-/think low     # 低延伸思考
-/think auto    # 自動判斷（v2026.3.1+）
+/think off       # 關閉延伸思考（生產環境推薦）
+/think minimal   # 最低延伸思考
+/think low       # 低延伸思考
+/think medium    # 中延伸思考
+/think high      # 高延伸思考
+/think xhigh     # 最高延伸思考
 ```
 
 或在 `openclaw.json` 中設定：
@@ -171,7 +174,7 @@ Humans don't respond to every message. Neither should you.
       },
       {
         id: "coding",
-        thinkingDefault: "auto"   // coding agent 按需推理
+        thinkingDefault: "medium"   // coding agent 適度推理
       }
     ]
   }

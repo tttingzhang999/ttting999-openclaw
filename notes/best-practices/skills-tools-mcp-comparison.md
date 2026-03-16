@@ -34,8 +34,12 @@ Agent 能做什麼事的底層能力，由 OpenClaw 內建提供。
 | 檔案系統 | read, write, edit, apply_patch | 讀寫檔案 |
 | 執行 | exec, bash, process | 跑 shell 指令 |
 | 瀏覽器 | browser, canvas | 網頁操作 |
-| 網路 | web_fetch | 抓取網頁內容 |
-| 排程 | cron, webhooks | 定時任務 |
+| 網路 | web_fetch, web_search | 抓取/搜尋網頁內容 |
+| 排程 | cron, gateway | 定時任務、自動化 |
+| 訊息 | message, sessions_send, sessions_list, sessions_spawn | 訊息與 session 管理 |
+| 記憶 | memory_search, memory_get | 記憶檢索 |
+| 媒體 | image, pdf | 圖片/PDF 處理 |
+| 管理 | agents_list, nodes, loop-detection | Agent 與系統管理 |
 
 **特性**：
 - 永遠可用（可透過 allow/deny 設定權限）
@@ -79,7 +83,7 @@ description: Track household expenses
 
 ### 支援的平台
 
-Claude Code、OpenClaw、Cursor、GitHub Copilot、VS Code、Goose、Windsurf、Gemini CLI、Roo Code、Trae
+Claude Code、OpenClaw、Cursor、GitHub Copilot、Windsurf、Gemini CLI、Roo Code、Trae、Codex CLI、Aider、Cline 等
 
 ### 規範重點
 
@@ -110,9 +114,9 @@ skill-name/
 
 ### 與 OpenClaw 的關係
 
-- OpenClaw **完整實作** AgentSkills 規範
+- OpenClaw **遵循** AgentSkills 規範（有小幅限制）
 - 在 OpenClaw 寫的 skill，**不改任何東西**就能發布到 skills.sh，在 Claude Code、Cursor 等平台上使用
-- OpenClaw 的小限制：frontmatter parser 只支援**單行** key（不支援多行 YAML）
+- OpenClaw 的限制：frontmatter parser 只支援**單行** key（不支援多行 YAML），因此 `metadata` 必須是單行 JSON
 
 ### 發布
 
@@ -212,5 +216,5 @@ openclaw.json mcpServers:
 - AgentSkills 規範：agentskills.io/specification
 - skills.sh 分發平台：skills.sh
 - OpenClaw Tools 文件：docs.openclaw.ai/tools
-- MCP 整合指南：openclawblog.space/articles/openclaw-mcp-integration-guide
+- MCP 整合指南：openclawblog.space/articles/openclaw-mcp-integration-guide-model-context-protocol
 - Skills vs MCP vs Plugins：openclaw.rocks/blog/mcp-skills-plugins

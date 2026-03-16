@@ -13,9 +13,9 @@
 
 ```bash
 # CLI 方式（推薦）
-openclaw agents add home
-openclaw agents add study
-openclaw agents add finance
+openclaw agents add --id home --workspace ~/.openclaw/workspace-home
+openclaw agents add --id study --workspace ~/.openclaw/workspace-study
+openclaw agents add --id finance --workspace ~/.openclaw/workspace-finance
 
 # 列出所有 agent
 openclaw agents list

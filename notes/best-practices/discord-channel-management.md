@@ -10,7 +10,7 @@ OpenClaw 對 Discord channel 的管理能力**有限**。
 - React（表情回應）
 - 建立 Thread
 - 處理 mention 和 DM
-- 自動分段（超過 2000 字元自動切割）
+- 自動分段（預設超過 2000 字元自動切割，可透過 `textChunkLimit` 設定）
 
 ## 有限支援
 
@@ -18,14 +18,15 @@ OpenClaw 對 Discord channel 的管理能力**有限**。
   - [Issue #26197](https://github.com/openclaw/openclaw/issues/26197)
 - Channel permission set/remove 內部存在但未暴露給 message tool API
 
-## 不支援
+## 不支援（核心）
 
-- 完整 guild 管理（建立/刪除 channel、角色管理等）
-  - [Issue #458](https://github.com/openclaw/openclaw/issues/458) 仍 open
+- 完整 guild 管理（categories、topics 等進階管理）
+  - [Issue #458](https://github.com/openclaw/openclaw/issues/458)
+  - 注意：基本的 `channel-create`/`channel-edit`/`channel-delete` 已存在
 
-## 不支援
+## 有限支援
 
-- Voice channel
+- Voice channel — 核心不內建，但有社群 skill（`discord-voice` by avatarneil）支援加入/離開語音頻道、語音轉文字等
 
 ## Workaround：透過 exec + Discord API
 

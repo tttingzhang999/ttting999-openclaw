@@ -31,10 +31,17 @@ OpenClaw 透過 `exec` tool 執行 shell 指令，等同完整終端控制：
 
 ### 2. Exec Approval（執行審批）
 
-三種模式：
+兩個獨立設定軸：
+
+**`security`**（執行範圍）：
 - `"deny"` — 禁止所有 exec
 - `"allowlist"` — 只允許預先核准的指令
 - `"full"` — 允許所有（不建議給對外 agent）
+
+**`ask`**（使用者確認）：
+- `"off"` — 不問
+- `"on-miss"` — 不在 allowlist 時才問
+- `"always"` — 每次都問
 
 需要審批時會回傳 `"approval-pending"` 狀態。
 
@@ -50,10 +57,20 @@ OpenClaw 透過 `exec` tool 執行 shell 指令，等同完整終端控制：
 }
 ```
 
-Sandbox 模式：
+Sandbox `mode`：
+- `"off"` — 不使用 sandbox
 - `"all"` — 全部 sandbox
-- `"rw"` — workspace 以 read/write 掛載
 - `"non-main"` — 非主要 session 才 sandbox
+
+Sandbox `scope`：
+- `"session"`（預設）— 每個 session 一個容器
+- `"agent"` — 每個 agent 一個容器
+- `"shared"` — 共用容器
+
+Sandbox `workspaceAccess`：
+- `"none"` — 不掛載 workspace
+- `"ro"` — 唯讀掛載
+- `"rw"` — 讀寫掛載
 
 ## 建議設定
 

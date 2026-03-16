@@ -1,13 +1,13 @@
 # Skill 部署到 OpenClaw Agent
 
-## 載入 Skill 的三種方式
+## 載入 Skill 的四種來源
 
 | 方式 | 路徑 | 優先級 | 可見範圍 |
 |------|------|--------|----------|
 | Workspace skills | `<workspace>/skills/` | 最高 | 僅該 agent |
-| 全域 skills | `~/.openclaw/skills/` | 中 | 所有 agent |
-| extraDirs | openclaw.json 設定 | 低 | 所有 agent |
-| Bundled skills | OpenClaw 內建 | 最低 | 所有 agent |
+| 全域 skills | `~/.openclaw/skills/` | 高 | 所有 agent |
+| Bundled skills | OpenClaw 內建 | 中 | 所有 agent |
+| extraDirs | openclaw.json 設定 | 最低 | 所有 agent |
 
 同名 skill 衝突時，高優先級覆蓋低優先級。
 
@@ -89,10 +89,10 @@ cp -r ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/
 
 ## 載入後生效
 
-- 重啟 gateway，或
-- 請 agent「refresh skills」
+- 開啟新 session（`/new`），skill 會在新 session 開始時重新載入
+- 或啟用 `skills.load.watch: true`（預設啟用），檔案變更時自動偵測更新
 
-不需要其他安裝步驟。
+注意：skill 在 session 開始時快照載入，修改後需要新 session 才會生效。
 
 ---
 
@@ -100,9 +100,9 @@ cp -r ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/
 
 ```bash
 # 1. 建立 agent（如果還沒建）
-openclaw agents add home
-openclaw agents add study
-openclaw agents add finance
+openclaw agents add --id home --workspace ~/.openclaw/workspace-home
+openclaw agents add --id study --workspace ~/.openclaw/workspace-study
+openclaw agents add --id finance --workspace ~/.openclaw/workspace-finance
 
 # 2. 用 symlink 分配 skill
 ln -s ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/calendar
