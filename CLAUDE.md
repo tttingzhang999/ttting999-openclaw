@@ -44,8 +44,8 @@ metadata: {"openclaw": {"requires": {"env": ["REQUIRED_ENV_VAR"]}, "primaryEnv":
 ### Skill 命名
 
 - 目錄名用 kebab-case
-- frontmatter `name` 用 snake_case
-- 描述用英文（OpenClaw 慣例）
+- frontmatter `name` 用 kebab-case（符合 Claude Agent Skills 規範，≤64 chars）
+- 描述用英文、第三人稱（OpenClaw 慣例）
 
 ## 開發流程
 
@@ -59,6 +59,8 @@ metadata: {"openclaw": {"requires": {"env": ["REQUIRED_ENV_VAR"]}, "primaryEnv":
 - **LLM backend**: OpenAI GPT
 - **通訊介面**: Discord（未來加 LINE）
 - **筆記平台**: Notion（skills 可能需要透過 Notion API 讀寫）
+- **套件管理**: uv（不使用 python & pip）
+- **資料庫**: 本機 PostgreSQL，每個服務獨立 database 隔離（如 `expense`、`calendar`）
 - **目標使用者**: 家庭成員（非技術人員也會使用）
 
 ## 注意事項
