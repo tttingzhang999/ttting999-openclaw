@@ -13,19 +13,24 @@
 
 ---
 
-## 方法一：Symlink 到 workspace（推薦）
+## ~~方法一：Symlink 到 workspace~~（不可用）
 
-好處：repo 改了 SKILL.md，agent 下次 session 馬上生效。
+> ⚠️ **Symlink 不可用。** OpenClaw 的 skill discovery 會做 realpath 安全檢查，
+> 要求解析後的路徑必須在 workspace root 內。Symlink 指向外部 repo 會被靜默忽略，
+> 不會報錯也不會載入。（2026-03-17 實測確認）
+
+## 方法一：直接複製到 workspace（推薦）
 
 ```bash
-# 把 skill 連結到對應 agent 的 workspace
-ln -s ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/calendar
-ln -s ~/ting-openclaw/skills/expense  ~/.openclaw/workspace-finance/skills/expense
-ln -s ~/ting-openclaw/skills/study    ~/.openclaw/workspace-study/skills/study
+# 把 skill 複製到對應 agent 的 workspace
+cp -r ~/ting-openclaw/skills/expense ~/.openclaw/workspace-finance/skills/expense
 
-# 所有 agent 共用的 skill 放全域
-ln -s ~/ting-openclaw/skills/shared-utils ~/.openclaw/skills/shared-utils
+# 更新時重新複製
+rm -rf ~/.openclaw/workspace-finance/skills/expense
+cp -r ~/ting-openclaw/skills/expense ~/.openclaw/workspace-finance/skills/expense
 ```
+
+缺點：改了 repo 要手動同步。可以寫 deploy script 自動化。
 
 ## 方法二：extraDirs 指向整個 repo
 
@@ -42,12 +47,12 @@ ln -s ~/ting-openclaw/skills/shared-utils ~/.openclaw/skills/shared-utils
 }
 ```
 
-## 方法三：直接複製
+## 方法三：全域 skills 目錄
 
-不推薦，因為改了 repo 還要手動同步。
+放在 `~/.openclaw/skills/` 下，所有 agent 都看得到。同樣不能用 symlink。
 
 ```bash
-cp -r ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/
+cp -r ~/ting-openclaw/skills/shared-utils ~/.openclaw/skills/shared-utils
 ```
 
 ---
@@ -100,16 +105,20 @@ cp -r ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/
 
 ```bash
 # 1. 建立 agent（如果還沒建）
-openclaw agents add --id home --workspace ~/.openclaw/workspace-home
-openclaw agents add --id study --workspace ~/.openclaw/workspace-study
 openclaw agents add --id finance --workspace ~/.openclaw/workspace-finance
 
-# 2. 用 symlink 分配 skill
-ln -s ~/ting-openclaw/skills/calendar ~/.openclaw/workspace-home/skills/calendar
-ln -s ~/ting-openclaw/skills/expense  ~/.openclaw/workspace-finance/skills/expense
-ln -s ~/ting-openclaw/skills/study    ~/.openclaw/workspace-study/skills/study
+# 2. 複製 skill 到 workspace（不能用 symlink）
+cp -r ~/Documents/coding/ttting999-openclaw/skills/expense ~/.openclaw/workspace-finance/skills/expense
 
-# 3. 驗證
-openclaw agents list
-# 請各 agent 測試：「列出你有哪些 skill」
+# 3. 驗證（注意：CLI 只掃 main workspace，per-agent 要用 agent 指令確認）
+openclaw agent --agent finance --message "列出你有哪些 skill"
+
+# 4. 設定 auto approve（免手動批准 exec）
+openclaw approvals allowlist add --agent finance "*/skills/expense/scripts/*"
 ```
+
+## 注意事項
+
+- `openclaw skills list` 只掃 main workspace，不顯示 per-agent workspace skills，但 runtime 會正確載入
+- Skill 在 session 開始時快照載入，部署後需要開新 session 才生效
+- 修改 repo 後記得重新 `cp -r` 到 workspace
