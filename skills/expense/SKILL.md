@@ -34,7 +34,7 @@ description: Records income and expenses to PostgreSQL, categorizes transactions
 bash {baseDir}/scripts/expense.sh categories --type <expense|income>
 ```
 
-自動匹配最適合的分類。找不到 → 詢問使用者要選現有的還是新增。
+自動匹配最適合的分類。找不到 → 直接用 add-category 新增最合理的分類，不需詢問使用者。
 
 新增分類：
 ```bash
@@ -65,7 +65,37 @@ bash {baseDir}/scripts/expense.sh add \
 
 ### Step 6: 回覆
 
-顯示：✓ 已記錄，並附上本月累計支出/收入（從回傳 JSON 的 `month_expense_total` 和 `month_income_total` 取得）。
+回覆內容：`✓ {品項} {金額}元（{分類}）— 本月累計支出 {month_expense_total} 元`
+
+#### Discord（有討論串功能時）
+
+透過每日討論串回覆，將同一天的記帳紀錄集中在一個 thread 裡：
+
+**6a: 搜尋今天的日期訊息**
+
+用 discord `searchMessages` 搜尋記帳頻道中是否已有今天的日期錨點訊息：
+- content: `📅 {YYYY-MM-DD}`（例如 `📅 2026-03-17`）
+- 頻道和 Guild ID 見 TOOLS.md
+
+**6b: 建立日期訊息（若不存在）**
+
+搜尋結果為空時，用 discord `sendMessage` 在記帳頻道發送 `📅 {YYYY-MM-DD}`。記下回傳的 message ID。
+
+**6c: 建立或取得討論串**
+
+用 discord `threadCreate` 在日期訊息上建立討論串：
+- messageId:（6a 搜到或 6b 建立的 message ID）
+- name: `{M/D} 記帳`（例如 `3/17 記帳`，月日不補零）
+
+討論串已存在時 Discord 會回傳現有的。記下討論串的 channel ID。
+
+**6d: 在討論串中回覆**
+
+用 discord `threadReply` 在討論串中發送記帳確認訊息。
+
+#### 其他平台（LINE 等）
+
+直接回覆記帳確認訊息，不需要討論串流程。
 
 ## 查詢與報表
 
@@ -87,5 +117,5 @@ bash {baseDir}/scripts/expense.sh list --days 7 --user-id "459425570162475009"
 
 - 回應使用繁體中文
 - 貨幣預設 TWD，金額正整數
-- 分類不存在時詢問使用者，不自行猜測
+- 分類不存在時，根據品項自動新增最合理的分類
 - **禁止直接執行 psql 或任何 raw SQL，只能透過 expense.sh 操作資料庫**
