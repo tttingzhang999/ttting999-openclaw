@@ -20,13 +20,15 @@ description: Records income and expenses to PostgreSQL, categorizes transactions
 從用戶訊息提取：
 - **類型**: expense（預設）或 income
 - **金額**: 正整數（TWD）
-- **品項**: 描述文字
+- **品項**: 描述文字（CLI 參數為 `--desc`，不是 --item）
 - **分類**: 匹配現有分類
 - **日期**: 未指定則今天，用戶說「昨天」則推算日期
 
 圖片處理：用戶有明確給金額就用，沒給就嘗試從圖片 OCR 提取金額和品項。
 
 ### Step 3: 查詢分類
+
+> ⚠️ **必須在 add 之前執行此步驟** — 不可跳過。先查分類，確認分類名稱存在後才能呼叫 add。
 
 ```bash
 bash {baseDir}/scripts/expense.sh categories --type <expense|income>

@@ -1,12 +1,19 @@
 #!/bin/bash
 set -euo pipefail
 
-DB_NAME="expense"
-DB_USER="postgres"
-DB_HOST="localhost"
+DB_NAME="${EXPENSE_DB_NAME:-expense}"
+DB_USER="${EXPENSE_DB_USER:-$(whoami)}"
+DB_HOST="${EXPENSE_DB_HOST:-localhost}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SCHEMA_PATH="$SCRIPT_DIR/../schema.sql"
+
+trim() {
+  local var="$1"
+  var="${var#"${var%%[![:space:]]*}"}"
+  var="${var%"${var##*[![:space:]]}"}"
+  echo "$var"
+}
 
 die_json() {
   jq -n --arg error "$1" '{error: $error}' >&2
@@ -19,7 +26,8 @@ psql_cmd() {
     jq -n --arg error "database error" --arg detail "$result" '{error: $error, detail: $detail}' >&2
     exit 1
   fi
-  echo "$result"
+  # psql -tAc may include command tags (e.g. "INSERT 0 1") on extra lines; take only the first line
+  trim "$(echo "$result" | head -n1)"
 }
 
 psql_json() {
@@ -150,12 +158,12 @@ cmd_add() {
 
   local insert_json
   insert_json=$(psql_json "
-    SELECT json_build_object('id', id, 'tx_date', tx_date)
-    FROM (
+    WITH ins AS (
       INSERT INTO transactions (type, amount, category_id, description, note, discord_user_id, discord_user_name, tx_date)
       VALUES ('$tx_type', $amount, $cat_id, '$safe_desc', $note_clause, '$safe_user_id', '$safe_user_name', $date_clause)
       RETURNING id, tx_date
-    ) ins
+    )
+    SELECT json_build_object('id', id, 'tx_date', tx_date) FROM ins
   ")
 
   local new_id new_date
@@ -176,6 +184,10 @@ cmd_add() {
   local expense_total income_total
   expense_total=$(echo "$totals_json" | jq -r '.expense_total')
   income_total=$(echo "$totals_json" | jq -r '.income_total')
+
+  new_id=$(trim "$new_id")
+  expense_total=$(trim "$expense_total")
+  income_total=$(trim "$income_total")
 
   jq -n \
     --arg status "ok" \
@@ -288,11 +300,12 @@ cmd_summary() {
 
   validate_month "$month"
 
-  local user_filter=""
+  local user_filter="" user_filter_t2=""
   if [[ -n "$user_id" ]]; then
     local safe_uid
     safe_uid=$(escape_sql "$user_id")
     user_filter="AND t.discord_user_id = '$safe_uid'"
+    user_filter_t2="AND t2.discord_user_id = '$safe_uid'"
   fi
 
   local summary
@@ -316,7 +329,7 @@ cmd_summary() {
           FROM transactions t2
           JOIN categories c ON c.id = t2.category_id
           WHERE date_trunc('month', t2.tx_date) = '$month-01'::date
-            $user_filter
+            $user_filter_t2
           GROUP BY c.name, c.icon, t2.type
           ORDER BY total DESC
         ) sub
