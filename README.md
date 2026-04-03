@@ -5,32 +5,36 @@
 ## 技術棧
 
 - **Runtime**: [OpenClaw](https://github.com/openclaw/openclaw) (self-hosted)
-- **LLM**: OpenAI GPT
-- **通訊介面**: Discord (預計新增 LINE)
+- **LLM**: OpenAI GPT (`openai-codex/gpt-5.4`)
+- **通訊介面**: Discord（預計新增 LINE）
 - **筆記平台**: Notion
 - **資料庫**: 本機 PostgreSQL（每個 skill 獨立 database 隔離）
 - **套件管理**: uv（不使用 python & pip）
-- **用途**: 記帳助手 / 日程助手 / 學習助手
+- **用途**: 記帳助手 / 工時追蹤 / 學習助手 / 工作日誌
 
 ## 目錄結構
 
 ```
 ting-openclaw/
 ├── skills/                         # OpenClaw 自訂 skills（self-contained）
-│   ├── calendar/                   # 日程管理
+│   ├── anki-learning/              # Anki 式單字學習
+│   ├── calendar/                   # 日程管理（WIP）
 │   ├── expense/                    # 記帳
 │   │   ├── SKILL.md                # Skill 指引
 │   │   ├── SCHEMA.md               # DB schema 文件
 │   │   ├── schema.sql              # DB DDL + seed
 │   │   └── scripts/expense.sh      # CLI wrapper（auto-init DB）
-│   └── study/                      # 學習助手
+│   ├── timetrack/                  # 三層工時追蹤
+│   └── worklog/                    # 工作日誌 / 待辦追蹤
 └── notes/                          # 筆記區
     ├── best-practices/             # OpenClaw 最佳實踐
+    ├── daily/                      # 每日紀錄
+    ├── openclaw-config/            # OpenClaw 人格與設定指南
     └── operations/                 # 操作紀錄
 ```
 
 每個 skill 是 self-contained unit：SKILL.md、腳本、schema 全部 bundle 在同一目錄。
-Symlink 部署時整個目錄帶走即可運作。
+部署必須用 `cp -r`（symlink 無效，OpenClaw 做 realpath 安全檢查）。
 
 ## 快速開始
 
@@ -40,11 +44,14 @@ Symlink 部署時整個目錄帶走即可運作。
 git clone <repo-url> ~/ting-openclaw
 ```
 
-2. 建立 agent 並 symlink skills
+2. 部署 skill 到對應 agent workspace
 
 ```bash
-openclaw agents add --id finance --workspace ~/.openclaw/workspace-finance
-ln -s ~/ting-openclaw/skills/expense ~/.openclaw/workspace-finance/skills/expense
+# expense → finance agent
+cp -r skills/expense/ ~/.openclaw/workspace-finance/skills/expense/
+
+# anki-learning → japanese-vocabulary agent
+cp -r skills/anki-learning/ ~/.openclaw/workspace-japanese-vocabulary/skills/anki-learning/
 ```
 
 3. 測試（expense skill 首次執行會自動建表）
@@ -59,22 +66,25 @@ openclaw agent --message "我剛買了立可帶, 30塊"
 
 ## Skills
 
-| Skill | 狀態 | 說明 |
-|-------|------|------|
-| `expense` | ✅ Done | 收支記錄、分類、月報。Shell CLI wrapper + PostgreSQL，auto-init DB |
-| `calendar` | WIP | 家庭行事曆、提醒、排程 |
-| `study` | WIP | 筆記整理、複習提醒、知識管理 |
+| Skill | 狀態 | DB | 部署 Agent | 說明 |
+|-------|------|-----|-----------|------|
+| `expense` | ✅ 完成 | `expense` | `finance` | 收支記錄、分類、月報。Shell CLI wrapper + PostgreSQL |
+| `anki-learning` | ✅ 完成 | `anki_learning` | `japanese-vocabulary` | Anki 式單字閃卡學習，追蹤進度，不重複出題 |
+| `timetrack` | ✅ 完成 | `timetrack` | 尚未部署 | 三層工時追蹤（實際/內部/客戶），支援批次更新與報表 |
+| `worklog` | 🔄 開發中 | `worklog` | 尚未部署 | 工作項目 / 待辦追蹤，自然語言輸入 |
+| `calendar` | 🔄 開發中 | — | — | 家庭行事曆、提醒、排程 |
 
-### Expense Skill
+## Agent 架構
 
-記帳功能，家人在 Discord #記帳 channel 透過自然語言或圖片+文字記錄收支。
-
-- 支援支出 + 收入，11 個預設分類（可動態新增）
-- 透過 Discord user ID 隔離不同用戶紀錄
-- 金額 >= 1000 或 OCR 提取時需確認，其餘直接寫入
-- CLI wrapper 做 input validation + SQL injection 防護，LLM 不直接碰 SQL
+| Agent ID | Workspace | 綁定 Discord 頻道 | 部署的 Skills |
+|----------|-----------|-------------------|---------------|
+| `main` | `~/.openclaw/workspace/` | 所有未綁定的訊息 | discord, notion, github, slack... |
+| `finance` | `~/.openclaw/workspace-finance/` | #記帳 | expense |
+| `japanese-vocabulary` | `~/.openclaw/workspace-japanese-vocabulary/` | #日文學習 | anki-learning |
 
 ## 筆記區
 
 - `notes/best-practices/` — OpenClaw 最佳實踐（驗證過的做法）
+- `notes/daily/` — 每日紀錄
+- `notes/openclaw-config/` — OpenClaw 人格設定與 agent 配置指南
 - `notes/operations/` — 個人操作紀錄與踩坑筆記
