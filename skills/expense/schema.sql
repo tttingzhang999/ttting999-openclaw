@@ -39,3 +39,19 @@ CREATE INDEX idx_tx_date ON transactions(tx_date);
 CREATE INDEX idx_tx_category ON transactions(category_id);
 CREATE INDEX idx_tx_user ON transactions(discord_user_id);
 CREATE INDEX idx_tx_type ON transactions(type);
+
+CREATE TABLE recurring_expenses (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    amount INTEGER NOT NULL CHECK (amount > 0),
+    category_id INTEGER NOT NULL REFERENCES categories(id),
+    frequency TEXT NOT NULL DEFAULT 'monthly',
+    note TEXT,
+    discord_user_id TEXT NOT NULL,
+    discord_user_name TEXT NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_recurring_user ON recurring_expenses(discord_user_id);
+CREATE INDEX idx_recurring_active ON recurring_expenses(is_active);

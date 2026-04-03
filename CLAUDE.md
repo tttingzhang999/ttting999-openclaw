@@ -95,15 +95,70 @@ skills/expense/scripts/expense.sh add --type expense --amount 30 --category "日
 
 ## 技術環境
 
-- **LLM backend**: OpenAI GPT
+- **LLM backend**: OpenAI GPT (model: `openai-codex/gpt-5.4`)
 - **通訊介面**: Discord（未來加 LINE）
 - **筆記平台**: Notion（skills 可能需要透過 Notion API 讀寫）
 - **套件管理**: uv（不使用 python & pip）
 - **資料庫**: 本機 PostgreSQL，每個服務獨立 database 隔離（如 `expense`、`calendar`）
 - **目標使用者**: 家庭成員（非技術人員也會使用）
 
+## 本機 OpenClaw 路徑與架構
+
+### Runtime 目錄：`~/.openclaw/`
+
+```
+~/.openclaw/
+├── openclaw.json              # 主設定檔（agents, bindings, channels, gateway）
+├── CLAUDE.md                  # 全域 system prompt
+├── agents/                    # Agent 實例狀態 & sessions
+│   ├── main/
+│   ├── finance/
+│   └── japanese-vocabulary/
+├── workspace/                 # main agent workspace
+│   └── skills/discord/        # Discord 整合 (from clawhub)
+├── workspace-finance/         # finance agent workspace
+│   └── skills/expense/        # ← 從本 repo cp -r 部署
+├── workspace-japanese-vocabulary/  # japanese-vocabulary agent workspace
+│   └── skills/anki-learning/  # ← 從本 repo cp -r 部署
+├── identity/                  # 裝置認證
+├── memory/                    # 全域記憶 (SQLite)
+├── cron/                      # 排程任務
+├── logs/                      # 執行日誌
+├── delivery-queue/            # 訊息佇列
+├── devices/                   # 連線裝置
+└── exec-approvals.json        # 工具執行授權紀錄
+```
+
+### Agent 架構
+
+| Agent ID | Workspace | 綁定 Discord 頻道 | 部署的 Skills |
+|----------|-----------|-------------------|---------------|
+| `main` | `~/.openclaw/workspace/` | 所有未綁定的 Discord 訊息 | discord, apple-notes, notion, github, slack... (26 skills) |
+| `finance` | `~/.openclaw/workspace-finance/` | `#1482769246361616404` | expense, coding-agent, github, model-usage, peekaboo |
+| `japanese-vocabulary` | `~/.openclaw/workspace-japanese-vocabulary/` | `#1483707902324641822`, `#1483707939708473394` | anki-learning, discord, model-usage, peekaboo |
+
+### Skill 部署對照（repo → 本機）
+
+| Repo Skill | 部署目標 |
+|------------|---------|
+| `skills/expense/` | `~/.openclaw/workspace-finance/skills/expense/` |
+| `skills/anki-learning/` | `~/.openclaw/workspace-japanese-vocabulary/skills/anki-learning/` |
+| `skills/calendar/` | 尚未部署（WIP） |
+
+### 部署指令
+
+```bash
+# expense skill → finance agent
+cp -r skills/expense/ ~/.openclaw/workspace-finance/skills/expense/
+
+# anki-learning skill → japanese-vocabulary agent
+cp -r skills/anki-learning/ ~/.openclaw/workspace-japanese-vocabulary/skills/anki-learning/
+```
+
 ## 注意事項
 
 - OpenClaw 更新速度快，skill 格式可能變動，注意追蹤官方 changelog
 - Skill 優先級：workspace > ~/.openclaw/skills > bundled，這個 repo 的 skills 放在 workspace 層級
 - 第三方 skill 視為不信任代碼，啟用前先閱讀
+- Symlink 無效（OpenClaw 做 realpath 安全檢查），必須 `cp -r` 直接複製
+- Discord binding 在 `openclaw.json` 的 `bindings` 設定，依 channel ID 路由到對應 agent
