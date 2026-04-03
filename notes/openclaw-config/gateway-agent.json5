@@ -1,0 +1,44 @@
+// OpenClaw Gateway Agent Configuration
+// Drop this into your gateway config's agents.list[] array
+// or merge with your existing openclaw.config.json5
+{
+  agents: {
+    defaults: {
+      model: {
+        primary: "anthropic/claude-sonnet-4-6",
+        fallbacks: ["anthropic/claude-haiku-4-5"],
+      },
+      thinkingDefault: "low",
+      verboseDefault: "off",       // <-- key: suppress verbose output globally
+      elevatedDefault: "on",
+      timeoutSeconds: 300,
+      contextTokens: 200000,
+      maxConcurrent: 3,
+    },
+    list: [
+      {
+        id: "claw",
+        default: true,
+        name: "Claw",
+        workspace: "~/.openclaw/workspace",
+        agentDir: "~/.openclaw/agents/claw/agent",
+        model: "anthropic/claude-sonnet-4-6",
+        thinkingDefault: "low",
+        reasoningDefault: "off",    // hide chain-of-thought from output
+        fastModeDefault: true,      // prefer speed over elaboration
+        identity: {
+          name: "Claw",
+          theme: "terse engineer",
+          // no emoji — the soul is concise, not cute
+        },
+        sandbox: { mode: "off" },
+        tools: {
+          profile: "coding",
+          allow: ["browser", "bash", "read", "edit", "write", "glob", "grep"],
+          deny: ["canvas"],         // canvas encourages verbose visual output
+          elevated: { enabled: true },
+        },
+      },
+    ],
+  },
+}
