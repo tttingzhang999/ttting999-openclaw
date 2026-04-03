@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Large binary files
+*.apkg
+*.png
+
+# Editor
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.*

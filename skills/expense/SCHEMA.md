@@ -29,6 +29,21 @@ Database: `expense` (PostgreSQL, localhost)
 | tx_date | DATE | 消費/收入日期（可回溯） |
 | created_at | TIMESTAMPTZ | 記錄建立時間 |
 
+### recurring_expenses
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | SERIAL PK | Auto-increment ID |
+| name | TEXT | 固定開銷名稱（如「房租」「Spotify」） |
+| amount | INTEGER CHECK >0 | 每期金額（TWD，正整數） |
+| category_id | INTEGER FK→categories | 分類 |
+| frequency | TEXT DEFAULT 'monthly' | 頻率（目前僅 monthly） |
+| note | TEXT NULL | 額外備註 |
+| discord_user_id | TEXT | Discord snowflake ID（隔離用戶） |
+| discord_user_name | TEXT | Discord 顯示名稱 |
+| is_active | BOOLEAN DEFAULT true | 是否啟用（停用 = soft delete） |
+| created_at | TIMESTAMPTZ | 記錄建立時間 |
+
 ## Enums
 
 - `tx_type`: `'expense'`, `'income'`
@@ -40,6 +55,8 @@ Database: `expense` (PostgreSQL, localhost)
 - `idx_tx_category` on transactions(category_id)
 - `idx_tx_user` on transactions(discord_user_id)
 - `idx_tx_type` on transactions(type)
+- `idx_recurring_user` on recurring_expenses(discord_user_id)
+- `idx_recurring_active` on recurring_expenses(is_active)
 
 ## Default Categories
 
